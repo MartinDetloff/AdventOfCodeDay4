@@ -3,15 +3,22 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class X_masSearch {
 
     private BufferedReader br;
     private ArrayList<ArrayList<Character>> listOfLists = new ArrayList<ArrayList<Character>>();
     private int xmasCounter = 0;
+    private ArrayList<ArrayList<Integer>> invalidPos = new ArrayList<>();
     public X_masSearch(BufferedReader br){
         this.br = br;
     }
+
+    public enum Direction {
+        RIGHT, LEFT, UP, DOWN, UPRIGHT, UPLEFT, DOWNRIGHT, DOWNLEFT;
+    }
+
 
     /**
      * Method to define the right direction (move right in the same row)
@@ -54,6 +61,7 @@ public class X_masSearch {
     private int[] upRight(int[] pos) {
         int row = pos[0];
         int col = pos[1];
+//        System.out.println("This is the row: " + row + "This is the col: " + col);
         return new int[]{row - 1, col + 1}; // Row decreases, column increases
     }
 
@@ -111,9 +119,10 @@ public class X_masSearch {
 //            System.out.println(st);
             // define a new array list
             ArrayList<Character> characterArrayList = new ArrayList<>();
+//            System.out.println("NEW LINE");
             // loop through all the characters in the current line
             for (Character character : st.toCharArray()){
-                System.out.println("Adding the " + character);
+//                System.out.println("Adding the " + character);
                 characterArrayList.add(character); // add them to the array list
             }
             listOfLists.add(characterArrayList);
@@ -131,24 +140,23 @@ public class X_masSearch {
             int colLength = listOfLists.get(row).size();
             for (int col = 0; col < colLength; col ++){
 
-
+                int[] currentPos = {row, col};
 
                 if (listOfLists.get(row).get(col) == 'M'){
 //                    System.out.println("Here");
-                    int[] currentPos = {row, col};
+
 
                     // make sure we can
-                    if (col > 0 && row < rowLength - 1){
+                    if (boundsChecker(Direction.UPRIGHT, currentPos, rowLength, colLength)){
                         // look upRight
-                        if (wordSearch("MAS", currentPos, "upright")){
-                            int[] tempCurrentPos = {currentPos[0] + 1, currentPos[1] - 1};
+                        if (wordSearch("MAS", currentPos, Direction.UPRIGHT)){
+                            int[] tempCurrentPos = {currentPos[0] - 1 , currentPos[1] + 1};
 
-                            if (boundsChecker("upright", currentPos, rowLength, colLength) &&
-                                    boundsChecker("downright", tempCurrentPos, rowLength, colLength) &&
-                                    boundsChecker("upleft", tempCurrentPos, rowLength, colLength)){
+                            if (boundsChecker(Direction.DOWNRIGHT, tempCurrentPos, rowLength, colLength) &&
+                                    boundsChecker(Direction.UPLEFT, tempCurrentPos, rowLength, colLength)){
 
-                                int[] posOne = newPositionHandler(currentPos, "downright");
-                                int[] posTwo = newPositionHandler(currentPos, "upleft");
+                                int[] posOne = newPositionHandler(tempCurrentPos, Direction.DOWNRIGHT);
+                                int[] posTwo = newPositionHandler(tempCurrentPos, Direction.UPLEFT);
 
                                 if (checkIfWeHaveMAS(posOne, posTwo)){
                                     xmasCounter++;
@@ -158,17 +166,16 @@ public class X_masSearch {
                     }
 
                     // make sure we can
-                    if (col > 0 && row > 0){
+                    if (boundsChecker(Direction.UPLEFT, currentPos, rowLength, colLength)){
                         // look upleft
-                        if (wordSearch("MAS", currentPos, "upleft")){
+                        if (wordSearch("MAS", currentPos, Direction.UPLEFT)){
                             int[] tempCurrentPos = {currentPos[0] - 1, currentPos[1] - 1};
 
-                            if (boundsChecker("upleft", currentPos, rowLength, colLength) &&
-                                    boundsChecker("downleft", tempCurrentPos, rowLength, colLength) &&
-                                    boundsChecker("upright", tempCurrentPos, rowLength, colLength)){
+                            if (boundsChecker(Direction.DOWNLEFT, tempCurrentPos, rowLength, colLength) &&
+                                    boundsChecker(Direction.UPRIGHT, tempCurrentPos, rowLength, colLength)){
 
-                                int[] posOne = newPositionHandler(currentPos, "downleft");
-                                int[] posTwo = newPositionHandler(currentPos, "upright");
+                                int[] posOne = newPositionHandler(tempCurrentPos, Direction.DOWNLEFT);
+                                int[] posTwo = newPositionHandler(tempCurrentPos, Direction.UPRIGHT);
 
                                 if (checkIfWeHaveMAS(posOne, posTwo)){
                                     xmasCounter++;
@@ -178,17 +185,16 @@ public class X_masSearch {
                     }
 
                     // make sure we can
-                    if (col < colLength - 1 && row < rowLength - 1){
+                    if (boundsChecker(Direction.DOWNRIGHT, currentPos, rowLength, colLength)){
                         // look downright
-                        if (wordSearch("MAS", currentPos, "downright")){
+                        if (wordSearch("MAS", currentPos, Direction.DOWNRIGHT)){
                             int[] tempCurrentPos = {currentPos[0] + 1, currentPos[1] + 1};
 
-                            if (boundsChecker("downright", currentPos, rowLength, colLength) &&
-                                    boundsChecker("upright", tempCurrentPos, rowLength, colLength) &&
-                                    boundsChecker("downleft", tempCurrentPos, rowLength, colLength)){
+                            if (boundsChecker(Direction.UPRIGHT, tempCurrentPos, rowLength, colLength) &&
+                                    boundsChecker(Direction.DOWNLEFT, tempCurrentPos, rowLength, colLength)){
 
-                                int[] posOne = newPositionHandler(currentPos, "upright");
-                                int[] posTwo = newPositionHandler(currentPos, "downleft");
+                                int[] posOne = newPositionHandler(tempCurrentPos, Direction.UPRIGHT);
+                                int[] posTwo = newPositionHandler(tempCurrentPos, Direction.DOWNLEFT);
 
                                 if (checkIfWeHaveMAS(posOne, posTwo)){
                                     xmasCounter++;
@@ -198,17 +204,17 @@ public class X_masSearch {
                     }
 
                     // make sure we can
-                    if (col < colLength - 1 && row > 0){
+                    if (boundsChecker(Direction.DOWNLEFT, currentPos, rowLength, colLength)){
                         // look downleft
-                        if (wordSearch("MAS", currentPos, "downleft")){
-                            int[] tempCurrentPos = {currentPos[0] - 1, currentPos[1] + 1};
+                        if (wordSearch("MAS", currentPos, Direction.DOWNLEFT)){
+                            int[] tempCurrentPos = {currentPos[0] + 1, currentPos[1] - 1};
 
-                            if (boundsChecker("downleft", currentPos, rowLength, colLength) &&
-                                    boundsChecker("downright", tempCurrentPos, rowLength, colLength) &&
-                                    boundsChecker("upleft", tempCurrentPos, rowLength, colLength)){
+                            if (
+                                    boundsChecker(Direction.DOWNRIGHT, tempCurrentPos, rowLength, colLength) &&
+                                    boundsChecker(Direction.UPLEFT, tempCurrentPos, rowLength, colLength)){
 
-                                int[] posOne = newPositionHandler(currentPos, "downright");
-                                int[] posTwo = newPositionHandler(currentPos, "upleft");
+                                int[] posOne = newPositionHandler(tempCurrentPos, Direction.DOWNRIGHT);
+                                int[] posTwo = newPositionHandler(tempCurrentPos, Direction.UPLEFT);
 
                                 if (checkIfWeHaveMAS(posOne, posTwo)){
                                     xmasCounter++;
@@ -230,24 +236,33 @@ public class X_masSearch {
     private boolean checkIfWeHaveMAS(int[] pos1, int[] pos2){
         int x1 = pos1[0];
         int y1 = pos1[1];
+
         int x2 = pos2[0];
         int y2 = pos2[1];
 
-        // Check if pos1 and pos2 are within bounds
-        if (x1 < 0 || x1 >= listOfLists.size() || y1 < 0 || y1 >= listOfLists.get(x1).size()) {
-            return false;
-        }
-        if (x2 < 0 || x2 >= listOfLists.size() || y2 < 0 || y2 >= listOfLists.get(x2).size()) {
-            return false;
-        }
+
 
         if (listOfLists.get(x1).get(y1) == 'M' && listOfLists.get(x2).get(y2) == 'S'){
+
+            invalidPos.add(new ArrayList<>(Arrays.asList(x1, y1)));
             return true;
         }
         if (listOfLists.get(x1).get(y1) == 'S' && listOfLists.get(x2).get(y2) == 'M'){
+
+            invalidPos.add(new ArrayList<>(Arrays.asList(x2, y2)));
             return true;
         }
         return false;
+    }
+
+    private boolean isValidPos(int[] currentPos){
+        for (ArrayList<Integer> invalidPos : invalidPos){
+            if (invalidPos.get(0) == currentPos[0] &&
+            invalidPos.get(1) == currentPos[1]){
+                return false;
+            }
+        }
+        return true;
     }
 
 
@@ -260,15 +275,13 @@ public class X_masSearch {
      * Method to search for the word in the given arraylist
      * @param word the word we are looking for
      */
-    private boolean wordSearch(String word, int[] currentPos, String direction){
+    private boolean wordSearch(String word, int[] currentPos, Direction direction){
         int wordIndex = 0;
         int[] currentPosT = currentPos;
 
         while (wordIndex < word.length()) {
             // Perform bounds check before accessing
-            if (!boundsChecker(direction, currentPosT, listOfLists.size(), listOfLists.get(0).size())) {
-                return false;
-            }
+
             int row = currentPosT[0];
             int col = currentPosT[1];
 
@@ -277,6 +290,13 @@ public class X_masSearch {
                 return false;
             }
 
+            if (wordIndex == word.length() - 1){
+                return true;
+            }
+
+            if (!boundsChecker(direction, currentPosT, listOfLists.size(), listOfLists.get(0).size())) {
+                return false;
+            }
             // Move to next position
             currentPosT = newPositionHandler(currentPosT, direction);
             wordIndex++;
@@ -291,31 +311,32 @@ public class X_masSearch {
      * @param direction the direction
      * @return the new position
      */
-    private int[] newPositionHandler(int[] currentPos, String direction){
+    private int[] newPositionHandler(int[] currentPos, Direction direction){
         int[] newPos = new int[2];
         switch (direction){
-            case "right":
+            case RIGHT:
                 newPos = right(currentPos);
                 break;
-            case "left":
+            case LEFT:
                 newPos = left(currentPos);
                 break;
-            case "up":
+            case UP:
                 newPos = up(currentPos);
                 break;
-            case "down":
+            case DOWN:
                 newPos = down(currentPos);
                 break;
-            case "upright":
+            case UPRIGHT:
+//                System.out.println("This is the current pos");
                 newPos = upRight(currentPos);
                 break;
-            case "upleft":
+            case UPLEFT:
                 newPos = upLeft(currentPos);
                 break;
-            case "downleft":
+            case DOWNLEFT:
                 newPos = downLeft(currentPos);
                 break;
-            case "downright":
+            case DOWNRIGHT:
                 newPos = downRight(currentPos);
                 break;
         }
@@ -330,28 +351,28 @@ public class X_masSearch {
      * @param colLength the col length
      * @return true if bounds are fine
      */
-    private boolean boundsChecker(String direction, int[] currentPos, int rowLength, int colLength){
+    private boolean boundsChecker(Direction direction, int[] currentPos, int rowLength, int colLength){
 
         int row = currentPos[0];
         int col = currentPos[1];
 
         // Check bounds based on the direction
         switch (direction) {
-            case "right":
+            case RIGHT:
                 return col + 1 < colLength;
-            case "left":
+            case LEFT:
                 return col - 1 >= 0;
-            case "up":
+            case UP:
                 return row - 1 >= 0;
-            case "down":
+            case DOWN:
                 return row + 1 < rowLength;
-            case "upright":
+            case UPRIGHT:
                 return row - 1 >= 0 && col + 1 < colLength;
-            case "upleft":
+            case UPLEFT:
                 return row - 1 >= 0 && col - 1 >= 0;
-            case "downright":
+            case DOWNRIGHT:
                 return row + 1 < rowLength && col + 1 < colLength;
-            case "downleft":
+            case DOWNLEFT:
                 return row + 1 < rowLength && col - 1 >= 0;
             default:
                 return false;
@@ -365,7 +386,7 @@ public class X_masSearch {
     public static void main(String[] args) throws IOException {
 
 
-        File file = new File("C:\\Users\\19365\\OneDrive\\Documents\\GitHub\\AdventOfCodeDay4\\src\\input.txt");
+        File file = new File("C:\\Users\\Martin\\Documents\\GitHub\\AdventOfCodeDay4\\src\\input.txt");
 
         BufferedReader br = new BufferedReader(new FileReader(file));
 
@@ -375,7 +396,7 @@ public class X_masSearch {
 
         int total = xmasSearch.checkAllDirections();
 
-        System.out.println("This is the total number of occurrences: " + total);
+        System.out.println("This is the total number of occurrences: " + total / 2);
 
     }
 }
